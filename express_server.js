@@ -40,8 +40,12 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let newKey = generateRandomString();
+  urlDatabase[newKey] = req.body.longURL;
+
+  res.redirect('/urls');
+  // console.log(req.body);  // Log the POST request body to the console
+  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:shortURL", (req, res) => {
@@ -55,6 +59,11 @@ app.get("/urls", (req, res) => {
   let templateVars = { urls: urlDatabase };
   // console.log('urls from express: ', templateVars);
   res.render("urls_index", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 app.get("/", (req, res) => {
