@@ -9,12 +9,14 @@
   <title>TinyApp</title>
 </head>
 <body style="font-size:20px; padding:50px;">
+  <% include ./partials/_header %>
+  <h3>My URLs</h3>
   <ul>
     <%
       if(urls){
         for(url in urls){  %>
           <li>
-            <a href=<%=`/urls/${url}`%>><%= url %></a>
+            <a href=<%=`/urls/${url}`%>><%= url %></a>: <%= urls[url] %>
             <!-- <a href=<%= urls[url] %>><%= url %></a> -->
           </li>
         <%
