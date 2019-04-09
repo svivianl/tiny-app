@@ -9,18 +9,10 @@
   <title>TinyApp</title>
 </head>
 <body style="font-size:20px; padding:50px;">
+  <a href="#">Create a new url</a>
   <ul>
-    <%
-      if(urls){
-        for(url in urls){  %>
-          <li>
-            <a href=<%=`/urls/${url}`%>><%= url %></a>
-            <!-- <a href=<%= urls[url] %>><%= url %></a> -->
-          </li>
-        <%
-        }
-      }
-    %>
+    <li>Short URL: <%= shortURL %></li>
+    <li>Long URL: <%= longURL %></li>
   </ul>
 </body>
 </html>
