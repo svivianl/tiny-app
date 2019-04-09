@@ -55,6 +55,11 @@ app.get("/hello", (req, res) => {
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
+// delete URL
+app.post('/urls/:shortURL/delete', (req, res) =>{
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+});
 // posts new URL
 app.post("/urls", (req, res) => {
   if(res.statusCode === 200){
