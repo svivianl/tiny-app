@@ -44,6 +44,17 @@ function generateRandomString() {
   return Math.random().toString(36).substring(7);
 }
 
+const getUser = email => {
+  let found = undefined;
+  for(user in users){
+    if(users[user].email === email){
+      found = users[user];
+      break;
+    }
+  }
+  return found;
+}
+
 const userExists = email => {
   let found = false;
   for(user in users){
@@ -70,7 +81,7 @@ app.get("/hello", (req, res) => {
 
 // new URL page
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new", {username: req.cookies['username']});
+  res.render("urls_new", users[req.cookies['user_id']]);
 });
 
 // deletes URL
@@ -97,7 +108,8 @@ app.get("/urls/:shortURL", (req, res) => {
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL] ,
-    username: req.cookies["username"]
+    // username: req.cookies["username"]
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
@@ -127,7 +139,8 @@ app.get("/urls", (req, res) => {
 
   let templateVars = {
     urls: urlDatabase,
-    username: req.cookies['username']
+    // username: req.cookies['username']
+    user: users[req.cookies["user_id"]]
   };
   // console.log('urls from express: ', templateVars);
   res.render("urls_index", templateVars);
@@ -149,20 +162,43 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 //login
+app.get("/login", (req, res) => {
+  res.render("user_login", {user: users[req.cookies["user_id"]]});
+});
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const { email, password } = req.body;
+
+  // check if the input data are empty
+  if(email === '' || password === ''){
+    res.status(400).send('email and password cannot be empty');
+
+  }else{
+    if(res.statusCode === 200){
+      let user = getUser(email);
+      // check if email is unique
+      if(user){
+        if(user.password === password){
+          res.cookie("user_id", user.id);
+          res.redirect("/urls");
+        }else{
+          res.status(403).send(`Password doesn't match`);
+        }
+      }else{
+        res.status(403).send('User not found');
+      }
+    }
+  }
 });
 //logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   urlDatabase = {};
   res.redirect("/urls");
 });
 
 // signup
 app.get("/register", (req, res) => {
-  res.render("user_new", {username: ''});
+  res.render("user_new", {user: ''});
 });
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
@@ -179,7 +215,7 @@ app.post("/register", (req, res) => {
       // console.log('req.body ', req.body);
 
       // check if email is unique
-      if(userExists(email)){
+      if(getUser(email)){
         // res.redirect(`/register`);
         res.status(400).send('email already exists');
 
@@ -190,7 +226,7 @@ app.post("/register", (req, res) => {
           password
         };
         // console.log(users);
-        res.cookie("username", id);
+        res.cookie("user_id", id);
         res.redirect(`/urls`);
       }
 
