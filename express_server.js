@@ -9,7 +9,22 @@ var cookieParser  = require('cookie-parser');
 var app     = express();
 var PORT    = 8080;
 
+/***************************************************************************
+  Data
+***************************************************************************/
 var urlDatabase = {};
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
 
 /***************************************************************************
   Initialization
@@ -27,6 +42,17 @@ app.set("view engine", "ejs");
 ***************************************************************************/
 function generateRandomString() {
   return Math.random().toString(36).substring(7);
+}
+
+const userExists = email => {
+  let found = false;
+  for(user in users){
+    if(users[user].email === email){
+      found = true;
+      break;
+    }
+  }
+  return found;
 }
 
 /***************************************************************************
@@ -122,12 +148,6 @@ app.get("/u/:shortURL", (req, res) => {
 
 });
 
-// root path
-app.get("/", (req, res) => {
-  let templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
-});
-
 //login
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
@@ -138,6 +158,54 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username");
   urlDatabase = {};
   res.redirect("/urls");
+});
+
+// signup
+app.get("/register", (req, res) => {
+  res.render("user_new", {username: ''});
+});
+app.post("/register", (req, res) => {
+  const { email, password } = req.body;
+
+  // check if the input data are empty
+  if(email === '' || password === ''){
+    res.status(400).send('email and password cannot be empty');
+
+  }else{
+    if(res.statusCode === 200){
+
+      // const { id } = req.body.username;
+      const id = generateRandomString();
+      // console.log('req.body ', req.body);
+
+      // check if email is unique
+      if(userExists(email)){
+        // res.redirect(`/register`);
+        res.status(400).send('email already exists');
+
+      }else{
+        users[id] = {
+          id,
+          email,
+          password
+        };
+        // console.log(users);
+        res.cookie("username", id);
+        res.redirect(`/urls`);
+      }
+
+    }
+    // else{
+    //   res.redirect(`/register`);
+    //   res.status(400).send('email already exists');
+    // }
+  }
+});
+
+// root path
+app.get("/", (req, res) => {
+  let templateVars = { greeting: 'Hello World!' };
+  res.render("hello_world", templateVars);
 });
 
 /***************************************************************************
