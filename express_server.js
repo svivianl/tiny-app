@@ -124,7 +124,7 @@ const urlsExist = (req, res, next)=>{
     error: ''
   };
 
-  console.log('user ', templateVars.user);
+  // console.log('user ', templateVars.user);
   if(req.cookies["user_id"] === undefined){
     console.log('here');
     // window.alert('Please Login or Register');
@@ -153,7 +153,7 @@ const isUserID = (req, res, next)=>{
     error: ''
   };
 
-  console.log('user ', templateVars.user);
+  // console.log('user ', templateVars.user);
   if(req.cookies["user_id"] === undefined){
     console.log('here');
     // window.alert('Please Login or Register');
@@ -277,7 +277,7 @@ app.get("/urls", (req, res) => {
     error: ''
   };
 
-  console.log('here, get urls');
+  // console.log('here, get urls');
   // console.log('urls ', urls);
   // get the URLs only if the user is logged in
   if(req.cookies["user_id"]){
@@ -348,7 +348,7 @@ app.get("/register", (req, res) => {
 });
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
-  console.log('here');
+  // console.log('here');
 
   // check if the input data are empty
   if(email === '' || password === ''){
