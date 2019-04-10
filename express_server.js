@@ -34,9 +34,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.set("view engine", "ejs");
 
-// app.use((req, res, next) => {
-//   req.cookie('name', )
-// });
 /***************************************************************************
   Functions
 ***************************************************************************/
@@ -97,18 +94,15 @@ app.post("/urls/:shortURL", (req, res) => {
   if(res.statusCode === 200){
     urlDatabase[req.params.shortURL] = req.body.longURL;
   }
-  console.log('Update urlDatabase ', urlDatabase);
+  // console.log('Update urlDatabase ', urlDatabase);
   res.redirect('/urls');
 });
 
 // displays the URL
 app.get("/urls/:shortURL", (req, res) => {
-  // console.log('req.params.shortURL ', req.params.shortURL);
-  // console.log('urlDatabase[req.params.shortURL] ', urlDatabase[req.params.shortURL])
   let templateVars = {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL] ,
-    // username: req.cookies["username"]
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
@@ -125,17 +119,12 @@ app.post("/urls", (req, res) => {
     res.redirect(`/urls/new`);
   }
 
-  // console.log(req.body);  // Log the POST request body to the console
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 // displays the URLs
 app.get("/urls", (req, res) => {
   // Cookies that have not been signed
   // console.log('Cookies: ', req.cookies)
-
-  // Cookies that have been signed
-  // console.log('Signed Cookies: ', req.signedCookies)
 
   let templateVars = {
     urls: urlDatabase,
@@ -148,15 +137,12 @@ app.get("/urls", (req, res) => {
 
 // goes/redirect to the URL
 app.get("/u/:shortURL", (req, res) => {
-  // console.log('urlDatabase ', urlDatabase);
-  // console.log('req.params ', req.params);
 
   // if(req.params.shortURL === undefined){
   //   res.redirect('/urls');
   // }else{
-    const longURL = urlDatabase[req.params.shortURL];
-    // console.log('urlDatabase[req.params.shortURL] ', urlDatabase[req.params.shortURL]);
-    res.redirect(longURL);
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
   // }
 
 });
@@ -189,6 +175,7 @@ app.post("/login", (req, res) => {
     }
   }
 });
+
 //logout
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
