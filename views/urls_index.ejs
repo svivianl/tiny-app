@@ -13,19 +13,27 @@
   <h3>My URLs</h3>
   <ul>
     <%
-      if(urls){
-        for(url in urls){  %>
-          <li>
-            <form method="POST" action=<%=`/urls/${url}/delete`%>>
-              <%= url %> : <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
-              <a href=<%=`/urls/${url}`%>>EDIT</a>
-              <button>DELETE</button>
-            </form>
-            <!-- <a href=<%= urls[url] %>><%= url %></a> -->
-          </li>
+      if(user){
+        if(urls && Object.keys(urls).length > 0){
+          for(url in urls){  %>
+            <li>
+              <form method="POST" action=<%=`/urls/${url}/delete`%>>
+                <%= url %> : <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
+                <a href=<%=`/urls/${url}`%>>EDIT</a>
+                <button>DELETE</button>
+              </form>
+              <!-- <a href=<%= urls[url] %>><%= url %></a> -->
+            </li>
+          <%
+          } // end for
+        }else{ %>
+          <p>Please <a href="/urls/new">Create New TinyURL</a></p>
         <%
-        } // end for
-      } // end if
+        } // end if urls
+      }else{%>
+        <p>Please <a href="/login">Log in</a> or <a href="/register">Register</a></p>
+      <%
+      } // end if user
     %>
   </ul>
 </body>

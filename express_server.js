@@ -264,7 +264,8 @@ app.post("/urls", isLoggedIn, (req, res) => {
 });
 
 // displays the URLs
-app.get("/urls", urlsExist, (req, res) => {
+app.get("/urls", (req, res) => {
+// app.get("/urls", urlsExist, (req, res) => {
   // Cookies that have not been signed
   // console.log('Cookies: ', req.cookies)
   users = {...req.cookies["users"]};
@@ -280,6 +281,9 @@ app.get("/urls", urlsExist, (req, res) => {
   // console.log('urls ', urls);
   // get the URLs only if the user is logged in
   if(req.cookies["user_id"]){
+    // for(key in urlDatabase){
+    //   templateVars.urls[key] = urlDatabase[key].longURL ;
+    // }
     templateVars.urls = {...urlsForUser(req.cookies["user_id"])};
     templateVars.error = 'Please login or create URLs';
   }
