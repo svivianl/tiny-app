@@ -1,2 +1,13 @@
 <h1>TinyApp</h1>
-<a href="/urls/new">Create New TinyURL</a>
+<% if(! username){ %>
+  <form method="POST" action='/login'>
+    <input type="text" name="username" placeholder='username'>
+    <button>Login</button>
+  </form>
+<%}else{%>
+  <p>Logged In As: <%= username %></p>
+  <form method="POST" action='/logout'>
+    <button>Logout</button>
+  </form>
+  <a href="/urls/new">Create New TinyURL</a>
+<%}%>

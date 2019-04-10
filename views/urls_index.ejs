@@ -17,7 +17,7 @@
         for(url in urls){  %>
           <li>
             <form method="POST" action=<%=`/urls/${url}/delete`%>>
-              <%= url %> : <a href=<%=`/urls/${url}`%>><%= urls[url] %></a>
+              <%= url %> : <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
               <a href=<%=`/urls/${url}`%>>EDIT</a>
               <button>DELETE</button>
             </form>
