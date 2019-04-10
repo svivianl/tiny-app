@@ -10,7 +10,10 @@
 </head>
 <body style="font-size:20px; padding:50px;">
   <% include ./partials/_header %>
-  <h3>TinyURL for <%= longURL %> </h3>
-  <p><%= shortURL %></p>
+  <h3>TinyURL for <%= shortURL %> </h3>
+  <form method="POST" action=<%=shortURL%>>
+    <input type="text" name="longURL" value=<%= longURL %>>
+    <button>UPDATE</button>
+  </form>
 </body>
 </html>

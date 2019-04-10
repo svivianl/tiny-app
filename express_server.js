@@ -55,11 +55,31 @@ app.get("/hello", (req, res) => {
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
-// delete URL
+
+// deletes URL
 app.post('/urls/:shortURL/delete', (req, res) =>{
-  delete urlDatabase[req.params.shortURL];
+  if(res.statusCode === 200){
+    delete urlDatabase[req.params.shortURL];
+  }
   res.redirect('/urls');
 });
+
+// updates the URL
+app.post("/urls/:shortURL", (req, res) => {
+  if(res.statusCode === 200){
+    urlDatabase[req.params.shortURL] = req.body.longURL;
+  }
+  res.redirect('/urls');
+});
+
+// displays the URL
+app.get("/urls/:shortURL", (req, res) => {
+  // console.log('req.params.shortURL ', req.params.shortURL);
+  // console.log('urlDatabase[req.params.shortURL] ', urlDatabase[req.params.shortURL])
+  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("urls_show", templateVars);
+});
+
 // posts new URL
 app.post("/urls", (req, res) => {
   if(res.statusCode === 200){
@@ -73,14 +93,6 @@ app.post("/urls", (req, res) => {
 
   // console.log(req.body);  // Log the POST request body to the console
   // res.send("Ok");         // Respond with 'Ok' (we will replace this)
-});
-
-// displays the URL
-app.get("/urls/:shortURL", (req, res) => {
-  // console.log('req.params.shortURL ', req.params.shortURL);
-  // console.log('urlDatabase[req.params.shortURL] ', urlDatabase[req.params.shortURL])
-  let templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  res.render("urls_show", templateVars);
 });
 
 // displays the URLs
