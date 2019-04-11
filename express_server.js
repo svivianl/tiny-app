@@ -2,11 +2,12 @@
 /***************************************************************************
   Variables
 ***************************************************************************/
-const bodyParser  = require("body-parser");
-var express       = require("express");
-var cookieParser  = require('cookie-parser');
-const session     = require('express-session');
-const flash       = require("connect-flash"); // messages
+const bodyParser      = require("body-parser");
+var express           = require("express");
+var cookieParser      = require('cookie-parser');
+const session         = require('express-session');
+const flash           = require("connect-flash"); // messages
+const bcrypt          = require('bcrypt');
 
 var app     = express();
 var PORT    = 8080;
@@ -322,7 +323,8 @@ app.post("/login", (req, res) => {
       let user = getUser(email);
       // check if email is unique
       if(user){
-        if(user.password === password){
+        if(bcrypt.compareSync( password, user.password)){
+        // if(user.password === bcrypt.hashSync(password, hashedPassword)){
           res.cookie("user_id", user.id);
           res.redirect("/urls");
         }else{
@@ -371,10 +373,11 @@ app.post("/register", (req, res) => {
         // const { id } = req.body.username;
         const id = generateRandomString();
         // console.log(users);
+        // console.log('password ', bcrypt.hashSync(password,hashedPassword));
         users[id] = {
           id,
           email,
-          password
+          password: bcrypt.hashSync(password, 10)
         };
         // console.log(users);
         res.cookie("user_id", id);
