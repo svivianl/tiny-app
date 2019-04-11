@@ -11,7 +11,7 @@
 <body style="font-size:20px; padding:50px;">
   <% include ./partials/_header %>
   <h3>TinyURL for <%= id %> </h3>
-  <form method="POST" action=<%=id%>>
+  <form method="POST" action=<%=`/urls/${id}?_method=PUT`%>>
     <input type="text" name="longURL" value=<%= longURL %>>
     <button>UPDATE</button>
   </form>

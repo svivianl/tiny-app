@@ -7,6 +7,7 @@ const express         = require("express");
 const cookieParser    = require('cookie-parser');
 const bcrypt          = require('bcrypt');
 const cookieSession   = require('cookie-session');
+const methodOverride  = require('method-override');
 
 const app     = express();
 const PORT    = 8080;
@@ -38,6 +39,9 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
+
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'))
 
 /***************************************************************************
   Functions
@@ -175,24 +179,22 @@ app.get("/urls/new", isLoggedIn, (req, res) => {
 });
 
 // deletes URL
-app.post('/urls/:id/delete', isUserID, (req, res) =>{
+app.delete('/urls/:id', isUserID, (req, res) =>{
 
   if(res.statusCode === 200){
     delete urlDatabase[req.params.id];
-    // req.session.urlDatabase = urlDatabase;
   }
   res.redirect('/urls');
 
 });
 
 // updates the URL
-app.post("/urls/:id", isUserID, (req, res) => {
+app.put("/urls/:id", isUserID, (req, res) => {
 
   if(res.statusCode === 200){
     urlDatabase[req.params.id] = {};
     urlDatabase[req.params.id].longURL = req.body.longURL;
     urlDatabase[req.params.id].userID = req.session.user_id;
-    // req.session.urlDatabase = urlDatabase;
   }
 
   res.redirect('/urls');
