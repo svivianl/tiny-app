@@ -1,7 +1,7 @@
 <!-- message -->
 
 
-<h1>TinyApp</h1>
+<h1 style= 'margin:20px 0;'>TinyApp</h1>
 <% if(!user){ %>
   <div>
     <a href='/login'>Login</a>
@@ -9,11 +9,13 @@
     <a href='/register'>Register</a>
   </div>
 <%}else{%>
-  <p>Logged In As: <%= user.email %></p>
-  <form method="POST" action='/logout'>
-    <button>Logout</button>
-  </form>
   <div>
+    <label>Logged In As: <%= user.email %></label>
+    <form style='float: right;' method="POST" action='/logout'>
+      <button>Logout</button>
+    </form>
+  </div>
+  <div style='clear: both;'>
     <a href="/urls">URLs</a>
     <span>|</span>
     <a href="/urls/new">Create New TinyURL</a>

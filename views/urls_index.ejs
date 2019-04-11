@@ -10,31 +10,41 @@
 </head>
 <body style="font-size:20px; padding:50px;">
   <% include ./partials/_header %>
-  <h3>My URLs</h3>
-  <ul>
+  <h3 style='padding:15px 0;'>My URLs</h3>
+  <%
+    if(user){
+      if(urls && Object.keys(urls).length > 0){ %>
+        <table style='width: 80%;'>
+          <tbody>
+              <% for(url in urls){  %>
+              <tr>
+                <td class='tab-padding'>
+                  <%= url %>
+                </td>
+                <td class='tab-padding'>
+                  <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
+                </td>
+                <td class='tab-padding'>
+                  <a href=<%=`/urls/${url}`%>>EDIT</a>
+                </td>
+                <td class='tab-padding'>
+                  <form method="POST" action=<%=`/urls/${url}/delete`%>>
+                    <button>DELETE</button>
+                  </form>
+                </td>
+
+              </tr>
+            <%} // end for %>
+          </tbody>
+        </table>
+
+      <%}else{ %>
+        <p>Please <a href="/urls/new">Create New TinyURL</a></p>
+      <%} // end if urls
+    }else{%>
+      <p>Please <a href="/login">Log in</a> or <a href="/register">Register</a></p>
     <%
-      if(user){
-        if(urls && Object.keys(urls).length > 0){
-          for(url in urls){  %>
-            <li>
-              <form method="POST" action=<%=`/urls/${url}/delete`%>>
-                <%= url %> : <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
-                <a href=<%=`/urls/${url}`%>>EDIT</a>
-                <button>DELETE</button>
-              </form>
-              <!-- <a href=<%= urls[url] %>><%= url %></a> -->
-            </li>
-          <%
-          } // end for
-        }else{ %>
-          <p>Please <a href="/urls/new">Create New TinyURL</a></p>
-        <%
-        } // end if urls
-      }else{%>
-        <p>Please <a href="/login">Log in</a> or <a href="/register">Register</a></p>
-      <%
-      } // end if user
-    %>
-  </ul>
+    } // end if user
+  %>
 </body>
 </html>
