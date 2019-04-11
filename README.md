@@ -8,7 +8,7 @@ The app is a full stack web application built with Node and Express that allows 
 ![Image of Main Page](./img/main-page.png)
 
 #### Register Page
-![Image of Register Page](./img/register-page.png)
+![Image of Register Page](./img/register.png)
 
 #### URLs Page
 ![Image of urls Page](./img/urls.png)
