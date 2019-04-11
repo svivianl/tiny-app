@@ -100,18 +100,6 @@ const isUserLoggedIn = (id) => (id === '' || id === undefined) ?  false : true;
 // update DB with cookie or create cookie
 const updatedB = (req) => {
 
-  if(req.session.hasOwnProperty('users')){
-    users = {...req.session.users};
-  }else{
-    req.session.users = {};
-  }
-
-  if(req.session.hasOwnProperty('urlDatabase')){
-    urlDatabase = {...req.session.urlDatabase};
-  }else{
-    req.session.urlDatabase = {};
-  }
-
   if(! req.session.hasOwnProperty('user_id')){
     req.session.user_id = '';
   }
@@ -191,7 +179,7 @@ app.post('/urls/:id/delete', isUserID, (req, res) =>{
 
   if(res.statusCode === 200){
     delete urlDatabase[req.params.id];
-    req.session.urlDatabase = urlDatabase;
+    // req.session.urlDatabase = urlDatabase;
   }
   res.redirect('/urls');
 
@@ -204,7 +192,7 @@ app.post("/urls/:id", isUserID, (req, res) => {
     urlDatabase[req.params.id] = {};
     urlDatabase[req.params.id].longURL = req.body.longURL;
     urlDatabase[req.params.id].userID = req.session.user_id;
-    req.session.urlDatabase = urlDatabase;
+    // req.session.urlDatabase = urlDatabase;
   }
 
   res.redirect('/urls');
@@ -234,7 +222,7 @@ app.post("/urls", isLoggedIn, (req, res) => {
       userID: req.session.user_id
     };
 
-    req.session.urlDatabase = urlDatabase;
+    // req.session.urlDatabase = urlDatabase;
     res.redirect(`/urls/${newKey}`);
 
   }else{
@@ -334,7 +322,7 @@ app.post("/register", (req, res) => {
     };
 
     req.session.user_id = id;
-    req.session.users = users;
+    // req.session.users = users;
     res.redirect(`/urls`);
 
   }
