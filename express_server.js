@@ -15,10 +15,11 @@ const PORT    = 8080;
 /***************************************************************************
   Data
 ***************************************************************************/
-// urlDatabase keys:
+// urlDB keys:
 //    longURL
 //    userID
-let urlDatabase = {};
+//    createdAt
+let urlDB = {};
 
 // users keys:
 //    id
@@ -41,7 +42,7 @@ app.use(cookieSession({
 }))
 
 // override with POST having ?_method=DELETE
-app.use(methodOverride('_method'))
+app.use(methodOverride('_method'));
 
 /***************************************************************************
   Functions
@@ -85,9 +86,12 @@ const urlsForUser = userID => {
 
   let found = {};
 
-  for(key in urlDatabase){
-    if(urlDatabase[key].userID === userID){
-      found[key] = urlDatabase[key].longURL ;
+  for(key in urlDB){
+    if(urlDB[key].userID === userID){
+      found[key] = {};
+      found[key].longURL = urlDB[key].longURL ;
+      console.log(urlDB[key]);
+      found[key].createdAt = convertDate(urlDB[key].createdAt);
     }
   }
 
@@ -108,6 +112,18 @@ const updatedB = (req) => {
     req.session.user_id = '';
   }
 
+}
+
+const createDate = () => {
+  return ( new Date ) ;
+  // returns current date in the format YYYY-MM-DD
+  // return moment( ( new Date ).format("YYYY-MM-DD") );
+}
+
+const convertDate = (date) => {
+  return date.toString().substr(0, 24);
+  // returns date in the format "month day, year"
+  // return moment(date.substr(0,10)).format("MM-DD-YYYY");
 }
 
 /***************************************************************************
@@ -147,7 +163,7 @@ const isUserID = (req, res, next)=>{
     return res.redirect('/login');
   }
 
-  if(urlDatabase[req.params.id].userID !== req.session.user_id){
+  if(urlDB[req.params.id].userID !== req.session.user_id){
     return res.status(403).send(`Unauthorized`);
   }
 
@@ -165,7 +181,7 @@ app.use((req, res, next)=>{
 ***************************************************************************/
 // sends the URLs json
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  res.json(urlDB);
 });
 
 // goes to the Hello World page
@@ -182,7 +198,7 @@ app.get("/urls/new", isLoggedIn, (req, res) => {
 app.delete('/urls/:id', isUserID, (req, res) =>{
 
   if(res.statusCode === 200){
-    delete urlDatabase[req.params.id];
+    delete urlDB[req.params.id];
   }
   res.redirect('/urls');
 
@@ -192,9 +208,9 @@ app.delete('/urls/:id', isUserID, (req, res) =>{
 app.put("/urls/:id", isUserID, (req, res) => {
 
   if(res.statusCode === 200){
-    urlDatabase[req.params.id] = {};
-    urlDatabase[req.params.id].longURL = req.body.longURL;
-    urlDatabase[req.params.id].userID = req.session.user_id;
+    // urlDB[req.params.id] = {};
+    urlDB[req.params.id].longURL = req.body.longURL;
+    urlDB[req.params.id].userID = req.session.user_id;
   }
 
   res.redirect('/urls');
@@ -205,8 +221,9 @@ app.get("/urls/:id", (req, res) => {
 
   let templateVars = {
     id: req.params.id,
-    longURL: urlDatabase[req.params.id].longURL,
-    user: users[req.session.user_id]
+    longURL: urlDB[req.params.id].longURL,
+    user: users[req.session.user_id],
+    createdAt: convertDate(urlDB[req.params.id].createdAt)
   };
 
   res.render("urls_show", templateVars);
@@ -219,12 +236,12 @@ app.post("/urls", isLoggedIn, (req, res) => {
 
     let newKey = generateRandomString();
 
-    urlDatabase[newKey] = {
+    urlDB[newKey] = {
       longURL: req.body.longURL,
-      userID: req.session.user_id
+      userID: req.session.user_id,
+      createdAt: createDate()
     };
 
-    // req.session.urlDatabase = urlDatabase;
     res.redirect(`/urls/${newKey}`);
 
   }else{
@@ -253,7 +270,7 @@ app.get("/urls", (req, res) => {
 // goes redirect to the URL
 app.get("/u/:id", (req, res) => {
 
-  const longURL = urlDatabase[req.params.id].longURL;
+  const longURL = urlDB[req.params.id].longURL;
   res.redirect(longURL);
 
 });

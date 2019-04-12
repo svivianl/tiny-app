@@ -15,14 +15,21 @@
     if(user){
       if(urls && Object.keys(urls).length > 0){ %>
         <table style='width: 80%;'>
+          <thead>
+            <td>ID</td>
+            <td>URLs</td>
+            <td></td>
+            <td></td>
+            <td>Created At</td>
+          </thead>
           <tbody>
-              <% for(url in urls){  %>
+              <% console.log('urls: ', urls); for(url in urls){  %>
               <tr>
                 <td class='tab-padding'>
                   <%= url %>
                 </td>
                 <td class='tab-padding'>
-                  <a href=<%=`/u/${url}`%>><%= urls[url] %></a>
+                  <a href=<%=`/u/${url}`%>><%= urls[url].longURL %></a>
                 </td>
                 <td class='tab-padding'>
                   <a href=<%=`/urls/${url}`%>>EDIT</a>
@@ -31,6 +38,9 @@
                   <form method="POST" action=<%=`/urls/${url}?_method=DELETE`%>>
                     <button>DELETE</button>
                   </form>
+                </td>
+                <td>
+                  <%= urls[url].createdAt %>
                 </td>
 
               </tr>
