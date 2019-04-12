@@ -284,7 +284,7 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   // check if the input data are empty
-  if(email === '' || password === ''){
+  if(email === '' || password === '' || email.replace(/\s/g, '') === '' || password.replace(/\s/g, '') === ''){
     return res.status(400).send('email and password cannot be empty');
   }
 
