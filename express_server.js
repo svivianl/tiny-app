@@ -9,8 +9,8 @@ const bcrypt          = require('bcrypt');
 const cookieSession   = require('cookie-session');
 const methodOverride  = require('method-override');
 
-const app     = express();
-const PORT    = 8080;
+const app             = express();
+const PORT            = process.env.PORT || 8080;
 
 /***************************************************************************
   Data
@@ -19,13 +19,19 @@ const PORT    = 8080;
 //    longURL
 //    userID
 //    createdAt
-let urlDB = {};
+const urlDB = {};
 
-// users keys:
+// usersDB keys:
 //    id
 //    email
 //    password
-let users = {};
+const usersDB = {};
+
+// visitorsDB keys:
+//    id
+//      urlID
+//        [visitedAt]
+const visitorsDB = {};
 
 /***************************************************************************
   Initialization
@@ -54,9 +60,9 @@ const getUser = email => {
 
   let found = undefined;
 
-  for(user in users){
-    if(users[user].email === email){
-      found = users[user];
+  for(user in usersDB){
+    if(usersDB[user].email === email){
+      found = usersDB[user];
       break;
     }
   }
@@ -70,8 +76,8 @@ const userExists = email => {
 
   let found = false;
 
-  for(user in users){
-    if(users[user].email === email){
+  for(user in usersDB){
+    if(usersDB[user].email === email){
       found = true;
       break;
     }
@@ -90,7 +96,6 @@ const urlsForUser = userID => {
     if(urlDB[key].userID === userID){
       found[key] = {};
       found[key].longURL = urlDB[key].longURL ;
-      console.log(urlDB[key]);
       found[key].createdAt = convertDate(urlDB[key].createdAt);
     }
   }
@@ -191,7 +196,7 @@ app.get("/hello", (req, res) => {
 
 // new URL page
 app.get("/urls/new", isLoggedIn, (req, res) => {
-  res.render("urls_new", {user: users[req.session.user_id]});
+  res.render("urls_new", {user: usersDB[req.session.user_id]});
 });
 
 // deletes URL
@@ -219,11 +224,54 @@ app.put("/urls/:id", isUserID, (req, res) => {
 // displays the URL
 app.get("/urls/:id", (req, res) => {
 
+  console.log('urlDB get ', urlDB);
+  // only inserts the visitor if the visitor is not the person who created the short URL
+  if(urlDB[req.params.id] && urlDB[req.params.id].userID !== req.session.user_id){
+    if(! visitorsDB.hasOwnProperty(req.session.user_id)){
+      visitorsDB[req.session.user_id] = {};
+    }
+
+    if(! visitorsDB[req.session.user_id].hasOwnProperty(req.params.id)){
+      visitorsDB[req.session.user_id][req.params.id] = {};
+      visitorsDB[req.session.user_id][req.params.id].visitedAt = [];
+    }
+
+    visitorsDB[req.session.user_id][req.params.id].visitedAt.push(createDate());
+  }
+
+  let visitors = [];
+  var uniqueVisitors = 0;
+
+  for(let key in visitorsDB){
+
+    if(visitorsDB[key].hasOwnProperty(req.params.id)){
+      visitorsDB[key][req.params.id].visitedAt.forEach( currentVisitedAt => {
+          visitors.push({
+            visitorID: key,
+            visitedAt: currentVisitedAt
+          });
+      });
+      uniqueVisitors ++;
+    }
+  }
+
+  let sortedVisitors = visitors.sort( ( a, b ) => b.visitedAt - a.visitedAt);
+  visitors = sortedVisitors.map(visitor => {
+    let visitedAt = convertDate(visitor.visitedAt);
+
+    return {
+      visitorID: visitor.visitorID,
+      visitedAt
+    }
+  });
+
   let templateVars = {
     id: req.params.id,
     longURL: urlDB[req.params.id].longURL,
-    user: users[req.session.user_id],
-    createdAt: convertDate(urlDB[req.params.id].createdAt)
+    user: usersDB[req.session.user_id],
+    createdAt: convertDate(urlDB[req.params.id].createdAt),
+    visitors,
+    uniqueVisitors
   };
 
   res.render("urls_show", templateVars);
@@ -252,11 +300,10 @@ app.post("/urls", isLoggedIn, (req, res) => {
 
 // displays the URLs
 app.get("/urls", (req, res) => {
-
   let urls = {};
   let templateVars = {
     urls: {},
-    user: users[req.session.user_id],
+    user: usersDB[req.session.user_id],
     error: ''
   };
 
@@ -277,7 +324,7 @@ app.get("/u/:id", (req, res) => {
 
 //login
 app.get("/login", (req, res) => {
-  res.render("user_login", {user: users[req.session.user_id]});
+  res.render("user_login", {user: usersDB[req.session.user_id]});
 });
 
 app.post("/login", (req, res) => {
@@ -334,14 +381,13 @@ app.post("/register", (req, res) => {
 
     const id = generateRandomString();
 
-    users[id] = {
+    usersDB[id] = {
       id,
       email,
       password: bcrypt.hashSync(password, 10)
     };
 
     req.session.user_id = id;
-    // req.session.users = users;
     res.redirect(`/urls`);
 
   }

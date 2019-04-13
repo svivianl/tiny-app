@@ -16,5 +16,28 @@
     <input type="text" name="longURL" value=<%= longURL %>>
     <button>UPDATE</button>
   </form>
+
+  <br>
+  <p>Visited <bold><%= visitors.length %></bold> times by <bold><%= uniqueVisitors %></bold> visitors </p>
+  <% if(visitors.length > 0){ %>
+    <table>
+      <thead>
+        <td style='padding: 0 5px;'>Visited at</td>
+        <td style='padding: 0 5px;'>Visitor ID</td>
+      </thead>
+      <tbody>
+        <% visitors.forEach( visitor => {  %>
+          <tr>
+            <td style='padding: 0 5px;'>
+              <%= visitor.visitedAt %>
+            </td>
+            <td style='padding: 0 5px;'>
+              <%= visitor.visitorID %>
+            </td>
+          </tr>
+        <%}) // end of forEach %>
+      </tbody>
+    </table>
+  <% } // end of if %>
 </body>
 </html>

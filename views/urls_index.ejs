@@ -16,25 +16,25 @@
       if(urls && Object.keys(urls).length > 0){ %>
         <table style='width: 80%;'>
           <thead>
-            <td>ID</td>
-            <td>URLs</td>
-            <td></td>
-            <td></td>
-            <td>Created At</td>
+            <td style='padding: 0 5px;'>ID</td>
+            <td style='padding: 0 5px;'>URLs</td>
+            <td style='padding: 0 5px;'></td>
+            <td style='padding: 0 5px;'></td>
+            <td style='padding: 0 5px;'>Created At</td>
           </thead>
           <tbody>
-              <% console.log('urls: ', urls); for(url in urls){  %>
+            <% for(url in urls){  %>
               <tr>
-                <td class='tab-padding'>
+                <td style='padding: 0 5px;'>
                   <%= url %>
                 </td>
-                <td class='tab-padding'>
+                <td style='padding: 0 5px;'>
                   <a href=<%=`/u/${url}`%>><%= urls[url].longURL %></a>
                 </td>
-                <td class='tab-padding'>
+                <td style='padding: 0 5px;'>
                   <a href=<%=`/urls/${url}`%>>EDIT</a>
                 </td>
-                <td class='tab-padding'>
+                <td style='padding: 0 5px;'>
                   <form method="POST" action=<%=`/urls/${url}?_method=DELETE`%>>
                     <button>DELETE</button>
                   </form>
@@ -42,7 +42,6 @@
                 <td>
                   <%= urls[url].createdAt %>
                 </td>
-
               </tr>
             <%} // end for %>
           </tbody>
