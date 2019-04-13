@@ -16,22 +16,24 @@ const PORT            = process.env.PORT || 8080;
   Data
 ***************************************************************************/
 // urlDB keys:
-//    longURL
-//    userID
-//    createdAt
+//    longURL       - string
+//    userID        - string
+//    createdAt     - date
+//    visitors      - object and has the userID as a key
+//      visitedAt   - array of date
 const urlDB = {};
 
 // usersDB keys:
-//    id
-//    email
-//    password
+//    id            - string
+//    email         - string
+//    password      - string
 const usersDB = {};
 
-// visitorsDB keys:
-//    id
-//      urlID
-//        [visitedAt]
-const visitorsDB = {};
+/***************************************************************************
+  Cookies
+***************************************************************************/
+// userID
+// visitorID
 
 /***************************************************************************
   Initialization
@@ -224,28 +226,53 @@ app.put("/urls/:id", isUserID, (req, res) => {
 // displays the URL
 app.get("/urls/:id", (req, res) => {
 
-  console.log('urlDB get ', urlDB);
-  // only inserts the visitor if the visitor is not the person who created the short URL
-  if(urlDB[req.params.id] && urlDB[req.params.id].userID !== req.session.user_id){
-    if(! visitorsDB.hasOwnProperty(req.session.user_id)){
-      visitorsDB[req.session.user_id] = {};
-    }
-
-    if(! visitorsDB[req.session.user_id].hasOwnProperty(req.params.id)){
-      visitorsDB[req.session.user_id][req.params.id] = {};
-      visitorsDB[req.session.user_id][req.params.id].visitedAt = [];
-    }
-
-    visitorsDB[req.session.user_id][req.params.id].visitedAt.push(createDate());
+  // if cannot find url redirect to the main page
+  if(!urlDB[req.params.id]){
+    return res.redirect('/urls');
   }
 
+  // get userID
+  var userId = '';
+
+  if(req.session.hasOwnProperty('user_id')){
+    userId = req.session.user_id;
+  }
+
+  if(!userId){
+    // set cookie in case the browser doesn't have one for the visitor
+    if(!req.session.hasOwnProperty('visitorID')){
+      req.session['visitorID'] = generateRandomString();
+    }
+
+    userId = req.session.visitorID;
+  }
+
+  // insert URL visitor
+  if(urlDB[req.params.id]){
+    if(!urlDB.hasOwnProperty('visitors')){
+      urlDB['visitors'] = {};
+    }
+
+    if(! urlDB.visitors.hasOwnProperty(userId)){
+      urlDB.visitors[userId] = {};
+    }
+
+    if(! urlDB.visitors[userId].hasOwnProperty(req.params.id)){
+      urlDB.visitors[userId][req.params.id] = {};
+      urlDB.visitors[userId][req.params.id].visitedAt = [];
+    }
+
+    urlDB.visitors[userId][req.params.id].visitedAt.push(createDate());
+  }
+
+  // get URL visitors
   let visitors = [];
   var uniqueVisitors = 0;
 
-  for(let key in visitorsDB){
+  for(let key in urlDB.visitors){
 
-    if(visitorsDB[key].hasOwnProperty(req.params.id)){
-      visitorsDB[key][req.params.id].visitedAt.forEach( currentVisitedAt => {
+    if(urlDB.visitors[key].hasOwnProperty(req.params.id)){
+      urlDB.visitors[key][req.params.id].visitedAt.forEach( currentVisitedAt => {
           visitors.push({
             visitorID: key,
             visitedAt: currentVisitedAt
@@ -265,10 +292,11 @@ app.get("/urls/:id", (req, res) => {
     }
   });
 
+  // set template to render the page
   let templateVars = {
     id: req.params.id,
     longURL: urlDB[req.params.id].longURL,
-    user: usersDB[req.session.user_id],
+    user: usersDB[userId],
     createdAt: convertDate(urlDB[req.params.id].createdAt),
     visitors,
     uniqueVisitors

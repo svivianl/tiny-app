@@ -34,3 +34,7 @@ The app is a full stack web application built with Node and Express that allows 
 
 * Method-override
 * Created date
+* Track how many times the short URL is visited
+
+## Features
+* Styling
