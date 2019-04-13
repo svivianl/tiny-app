@@ -33,7 +33,7 @@ The app is a full stack web application built with Node and Express that allows 
 ## Stretch
 
 * Method-override
-* Created date
+* Created at
 * Track how many times the short URL is visited
 
 ## Features
