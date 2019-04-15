@@ -21,6 +21,8 @@
             <td style='padding: 0 5px;'></td>
             <td style='padding: 0 5px;'></td>
             <td style='padding: 0 5px;'>Created At</td>
+            <td style='padding: 0 5px;'>Times Visited</td>
+            <td style='padding: 0 5px;'>Number of Unique Visitors</td>
           </thead>
           <tbody>
             <% for(url in urls){  %>
@@ -41,6 +43,12 @@
                 </td>
                 <td>
                   <%= urls[url].createdAt %>
+                </td>
+                <td>
+                  <%= urls[url].visitors %>
+                </td>
+                <td>
+                  <%= urls[url].uniqueVisitors %>
                 </td>
               </tr>
             <%} // end for %>

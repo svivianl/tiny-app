@@ -89,17 +89,43 @@ const userExists = email => {
 
 }
 
+const getVisitors = (urlID) => {
+
+  let visitors = [];
+  var uniqueVisitors = 0;
+
+  for(let key in urlDB[urlID].visitors){
+    urlDB[urlID].visitors[key].visitedAt.forEach( currentVisitedAt => {
+        visitors.push({
+          visitorID: key,
+          visitedAt: currentVisitedAt
+        });
+    });
+    uniqueVisitors ++;
+  }
+
+  return {
+    visitors,
+    uniqueVisitors
+  }
+}
+
 // gets the user's URLs
 const urlsForUser = userID => {
 
   let found = {};
 
   for(key in urlDB){
+    let { visitors, uniqueVisitors } = getVisitors(key);
+
     if(urlDB[key].userID === userID){
-      found[key] = {};
-      found[key].longURL = urlDB[key].longURL ;
-      found[key].createdAt = convertDate(urlDB[key].createdAt);
-    }
+      found[key] = {
+        longURL: urlDB[key].longURL,
+        createdAt: convertDate(urlDB[key].createdAt),
+        visitors: visitors.length,
+        uniqueVisitors
+      };
+   }
   }
 
   // if the object found is empty, pass the value -1
@@ -186,6 +212,8 @@ app.use((req, res, next)=>{
 /***************************************************************************
   Routes
 ***************************************************************************/
+// GET ---------------------------------------------------------------------
+
 // sends the URLs json
 app.get("/urls.json", (req, res) => {
   res.json(urlDB);
@@ -201,34 +229,12 @@ app.get("/urls/new", isLoggedIn, (req, res) => {
   res.render("urls_new", {user: usersDB[req.session.user_id]});
 });
 
-// deletes URL
-app.delete('/urls/:id', isUserID, (req, res) =>{
-
-  if(res.statusCode === 200){
-    delete urlDB[req.params.id];
-  }
-  res.redirect('/urls');
-
-});
-
-// updates the URL
-app.put("/urls/:id", isUserID, (req, res) => {
-
-  if(res.statusCode === 200){
-    // urlDB[req.params.id] = {};
-    urlDB[req.params.id].longURL = req.body.longURL;
-    urlDB[req.params.id].userID = req.session.user_id;
-  }
-
-  res.redirect('/urls');
-});
-
 // displays the URL
 app.get("/urls/:id", (req, res) => {
 
   // if cannot find url redirect to the main page
   if(!urlDB[req.params.id]){
-    return res.redirect('/urls');
+    return res.status(403).send(`URL id not found`);
   }
 
   // get userID
@@ -249,38 +255,21 @@ app.get("/urls/:id", (req, res) => {
 
   // insert URL visitor
   if(urlDB[req.params.id]){
-    if(!urlDB.hasOwnProperty('visitors')){
-      urlDB['visitors'] = {};
+    if(!urlDB[req.params.id].hasOwnProperty('visitors')){
+      urlDB[req.params.id]['visitors'] = {};
     }
 
-    if(! urlDB.visitors.hasOwnProperty(userId)){
-      urlDB.visitors[userId] = {};
+    if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
+      urlDB[req.params.id].visitors[userId] = {
+        visitedAt: []
+      };
     }
 
-    if(! urlDB.visitors[userId].hasOwnProperty(req.params.id)){
-      urlDB.visitors[userId][req.params.id] = {};
-      urlDB.visitors[userId][req.params.id].visitedAt = [];
-    }
-
-    urlDB.visitors[userId][req.params.id].visitedAt.push(createDate());
+    urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
   }
 
   // get URL visitors
-  let visitors = [];
-  var uniqueVisitors = 0;
-
-  for(let key in urlDB.visitors){
-
-    if(urlDB.visitors[key].hasOwnProperty(req.params.id)){
-      urlDB.visitors[key][req.params.id].visitedAt.forEach( currentVisitedAt => {
-          visitors.push({
-            visitorID: key,
-            visitedAt: currentVisitedAt
-          });
-      });
-      uniqueVisitors ++;
-    }
-  }
+  let { visitors, uniqueVisitors } = getVisitors(req.params.id);
 
   let sortedVisitors = visitors.sort( ( a, b ) => b.visitedAt - a.visitedAt);
   visitors = sortedVisitors.map(visitor => {
@@ -305,6 +294,53 @@ app.get("/urls/:id", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// displays the URLs
+app.get("/urls", (req, res) => {
+  let urls = {};
+  let templateVars = {
+    urls: {},
+    user: usersDB[req.session.user_id],
+    error: ''
+  };
+
+  if(req.session.user_id){
+    templateVars.urls = {...urlsForUser(req.session.user_id)};
+  }
+
+  res.render("urls_index", templateVars );
+});
+
+// goes redirect to the URL
+app.get("/u/:id", (req, res) => {
+
+  // if cannot find url redirect to the main page
+  if(!urlDB[req.params.id]){
+    return res.status(403).send(`URL id not found`);
+  }
+
+  const longURL = urlDB[req.params.id].longURL;
+  res.redirect(longURL);
+
+});
+
+//login
+app.get("/login", (req, res) => {
+  res.render("user_login", {user: usersDB[req.session.user_id]});
+});
+
+// signup
+app.get("/register", (req, res) => {
+  res.render("user_new", {user: ''});
+});
+
+// root path
+app.get("/", (req, res) => {
+  let templateVars = { greeting: 'Hello World!' };
+  res.render("hello_world", templateVars);
+});
+
+// POST --------------------------------------------------------------------
+
 // posts new URL
 app.post("/urls", isLoggedIn, (req, res) => {
 
@@ -326,35 +362,7 @@ app.post("/urls", isLoggedIn, (req, res) => {
 
 });
 
-// displays the URLs
-app.get("/urls", (req, res) => {
-  let urls = {};
-  let templateVars = {
-    urls: {},
-    user: usersDB[req.session.user_id],
-    error: ''
-  };
-
-  if(req.session.user_id){
-    templateVars.urls = {...urlsForUser(req.session.user_id)};
-  }
-
-  res.render("urls_index", templateVars );
-});
-
-// goes redirect to the URL
-app.get("/u/:id", (req, res) => {
-
-  const longURL = urlDB[req.params.id].longURL;
-  res.redirect(longURL);
-
-});
-
-//login
-app.get("/login", (req, res) => {
-  res.render("user_login", {user: usersDB[req.session.user_id]});
-});
-
+// login
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -388,10 +396,6 @@ app.post("/logout", (req, res) => {
 });
 
 // signup
-app.get("/register", (req, res) => {
-  res.render("user_new", {user: ''});
-});
-
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
 
@@ -421,10 +425,30 @@ app.post("/register", (req, res) => {
   }
 });
 
-// root path
-app.get("/", (req, res) => {
-  let templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
+// PUT ---------------------------------------------------------------------
+
+// updates the URL
+app.put("/urls/:id", isUserID, (req, res) => {
+
+  if(res.statusCode === 200){
+    // urlDB[req.params.id] = {};
+    urlDB[req.params.id].longURL = req.body.longURL;
+    urlDB[req.params.id].userID = req.session.user_id;
+  }
+
+  res.redirect('/urls');
+});
+
+// DELETE ------------------------------------------------------------------
+
+// deletes URL
+app.delete('/urls/:id', isUserID, (req, res) =>{
+
+  if(res.statusCode === 200){
+    delete urlDB[req.params.id];
+  }
+  res.redirect('/urls');
+
 });
 
 /***************************************************************************
