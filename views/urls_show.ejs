@@ -18,12 +18,12 @@
   </form>
 
   <br>
-  <p>Visited <bold><%= visitors.length %></bold> times by <bold><%= uniqueVisitors %></bold> visitors </p>
+  <p>Visited <strong><%= visitors.length %></strong> times by <strong><%= uniqueVisitors %></strong> visitors </p>
   <% if(visitors.length > 0){ %>
     <table>
       <thead>
-        <td style='padding: 0 5px;'><bold>Visited at</bold></td>
-        <td style='padding: 0 5px;'><bold>Visitor ID</bold></td>
+        <td style='padding: 0 5px;'><strong>Visited at</strong></td>
+        <td style='padding: 0 5px;'><strong>Visitor ID</strong></td>
       </thead>
       <tbody>
         <% visitors.forEach( visitor => {  %>
