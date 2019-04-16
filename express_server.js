@@ -70,28 +70,11 @@ const getUser = email => {
   }
 
   return found;
-
-}
-
-// check if e-mail already exists
-const userExists = email => {
-
-  let found = false;
-
-  for(user in usersDB){
-    if(usersDB[user].email === email){
-      found = true;
-      break;
-    }
-  }
-
-  return found;
-
 }
 
 const getVisitors = (urlID) => {
 
-  let visitors = [];
+  const visitors = [];
   var uniqueVisitors = 0;
 
   for(let key in urlDB[urlID].visitors){
@@ -116,7 +99,7 @@ const urlsForUser = userID => {
   let found = {};
 
   for(key in urlDB){
-    let { visitors, uniqueVisitors } = getVisitors(key);
+    const { visitors, uniqueVisitors } = getVisitors(key);
 
     if(urlDB[key].userID === userID){
       found[key] = {
@@ -132,7 +115,6 @@ const urlsForUser = userID => {
   if(Object.keys(found).length === 0){ found = -1;}
 
   return found;
-
 }
 
 // checks if user is logged in
@@ -144,21 +126,41 @@ const updatedB = (req) => {
   if(! req.session.hasOwnProperty('user_id')){
     req.session.user_id = '';
   }
-
 }
 
 const createDate = () => {
   return ( new Date ) ;
-  // returns current date in the format YYYY-MM-DD
-  // return moment( ( new Date ).format("YYYY-MM-DD") );
 }
 
 const convertDate = (date) => {
   return date.toString().substr(0, 24);
-  // returns date in the format "month day, year"
-  // return moment(date.substr(0,10)).format("MM-DD-YYYY");
 }
 
+const setURLsVisitors = (userId) => {
+  if(!userId){
+    // set cookie in case the browser doesn't have one for the visitor
+    if(!req.session.hasOwnProperty('visitorID')){
+      req.session['visitorID'] = generateRandomString();
+    }
+
+    userId = req.session.visitorID;
+  }
+
+  // insert URL visitor
+  if(urlDB[req.params.id]){
+    if(!urlDB[req.params.id].hasOwnProperty('visitors')){
+      urlDB[req.params.id]['visitors'] = {};
+    }
+
+    if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
+      urlDB[req.params.id].visitors[userId] = {
+        visitedAt: []
+      };
+    }
+
+    urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
+  }
+}
 /***************************************************************************
   Middlewares
 ***************************************************************************/
@@ -168,21 +170,6 @@ const isLoggedIn = (req, res, next)=>{
 
   if(!isUserLoggedIn(req.session.user_id)){
     return res.redirect('/login');
-  }
-
-  return next();
-};
-
-// checks if URLs exist for the user logged in
-const urlsExist = (req, res, next)=>{
-
-  if(!isUserLoggedIn(req.session.user_id)){
-    return res.redirect('/login');
-  }
-
-  // check if the user has URLs
-  if(urlsForUser(req.session.user_id) === -1){
-    return res.redirect('/urls/new');
   }
 
   return next();
@@ -244,36 +231,37 @@ app.get("/urls/:id", (req, res) => {
     userId = req.session.user_id;
   }
 
-  if(!userId){
-    // set cookie in case the browser doesn't have one for the visitor
-    if(!req.session.hasOwnProperty('visitorID')){
-      req.session['visitorID'] = generateRandomString();
-    }
+  // setURLsVisitors(userId);
+  // if(!userId){
+  //   // set cookie in case the browser doesn't have one for the visitor
+  //   if(!req.session.hasOwnProperty('visitorID')){
+  //     req.session['visitorID'] = generateRandomString();
+  //   }
 
-    userId = req.session.visitorID;
-  }
+  //   userId = req.session.visitorID;
+  // }
 
-  // insert URL visitor
-  if(urlDB[req.params.id]){
-    if(!urlDB[req.params.id].hasOwnProperty('visitors')){
-      urlDB[req.params.id]['visitors'] = {};
-    }
+  // // insert URL visitor
+  // if(urlDB[req.params.id]){
+  //   if(!urlDB[req.params.id].hasOwnProperty('visitors')){
+  //     urlDB[req.params.id]['visitors'] = {};
+  //   }
 
-    if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
-      urlDB[req.params.id].visitors[userId] = {
-        visitedAt: []
-      };
-    }
+  //   if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
+  //     urlDB[req.params.id].visitors[userId] = {
+  //       visitedAt: []
+  //     };
+  //   }
 
-    urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
-  }
+  //   urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
+  // }
 
   // get URL visitors
-  let { visitors, uniqueVisitors } = getVisitors(req.params.id);
+  const { visitors, uniqueVisitors } = getVisitors(req.params.id);
 
-  let sortedVisitors = visitors.sort( ( a, b ) => b.visitedAt - a.visitedAt);
+  const sortedVisitors = visitors.sort( ( a, b ) => b.visitedAt - a.visitedAt);
   visitors = sortedVisitors.map(visitor => {
-    let visitedAt = convertDate(visitor.visitedAt);
+    const visitedAt = convertDate(visitor.visitedAt);
 
     return {
       visitorID: visitor.visitorID,
@@ -282,7 +270,7 @@ app.get("/urls/:id", (req, res) => {
   });
 
   // set template to render the page
-  let templateVars = {
+  const templateVars = {
     id: req.params.id,
     longURL: urlDB[req.params.id].longURL,
     user: usersDB[userId],
@@ -296,8 +284,7 @@ app.get("/urls/:id", (req, res) => {
 
 // displays the URLs
 app.get("/urls", (req, res) => {
-  let urls = {};
-  let templateVars = {
+  const templateVars = {
     urls: {},
     user: usersDB[req.session.user_id],
     error: ''
@@ -318,6 +305,15 @@ app.get("/u/:id", (req, res) => {
     return res.status(403).send(`URL id not found`);
   }
 
+  // get userID
+  var userId = '';
+
+  if(req.session.hasOwnProperty('user_id')){
+    userId = req.session.user_id;
+  }
+
+  setURLsVisitors(userId);
+
   const longURL = urlDB[req.params.id].longURL;
   res.redirect(longURL);
 
@@ -335,8 +331,13 @@ app.get("/register", (req, res) => {
 
 // root path
 app.get("/", (req, res) => {
-  let templateVars = { greeting: 'Hello World!' };
-  res.render("hello_world", templateVars);
+  if(req.session.user_id){
+    res.redirect('/urls');
+  }else{
+    res.redirect('/login');
+  }
+  // const templateVars = { greeting: 'Hello World!' };
+  // res.render("hello_world", templateVars);
 });
 
 // POST --------------------------------------------------------------------
@@ -346,7 +347,7 @@ app.post("/urls", isLoggedIn, (req, res) => {
 
   if(res.statusCode === 200){
 
-    let newKey = generateRandomString();
+    const newKey = generateRandomString();
 
     urlDB[newKey] = {
       longURL: req.body.longURL,
@@ -373,7 +374,7 @@ app.post("/login", (req, res) => {
 
   if(res.statusCode === 200){
 
-    let user = getUser(email);
+    const user = getUser(email);
 
     // check if email is unique
     if(! user){
