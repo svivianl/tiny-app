@@ -136,7 +136,7 @@ const convertDate = (date) => {
   return date.toString().substr(0, 24);
 }
 
-const setURLsVisitors = (userId) => {
+const setURLsVisitors = (userId, urlId, req) => {
   if(!userId){
     // set cookie in case the browser doesn't have one for the visitor
     if(!req.session.hasOwnProperty('visitorID')){
@@ -147,18 +147,18 @@ const setURLsVisitors = (userId) => {
   }
 
   // insert URL visitor
-  if(urlDB[req.params.id]){
-    if(!urlDB[req.params.id].hasOwnProperty('visitors')){
-      urlDB[req.params.id]['visitors'] = {};
+  if(urlDB[urlId]){
+    if(!urlDB[urlId].hasOwnProperty('visitors')){
+      urlDB[urlId]['visitors'] = {};
     }
 
-    if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
-      urlDB[req.params.id].visitors[userId] = {
+    if(! urlDB[urlId].visitors.hasOwnProperty(userId)){
+      urlDB[urlId].visitors[userId] = {
         visitedAt: []
       };
     }
 
-    urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
+    urlDB[urlId].visitors[userId].visitedAt.push(createDate());
   }
 }
 /***************************************************************************
@@ -231,33 +231,8 @@ app.get("/urls/:id", (req, res) => {
     userId = req.session.user_id;
   }
 
-  // setURLsVisitors(userId);
-  // if(!userId){
-  //   // set cookie in case the browser doesn't have one for the visitor
-  //   if(!req.session.hasOwnProperty('visitorID')){
-  //     req.session['visitorID'] = generateRandomString();
-  //   }
-
-  //   userId = req.session.visitorID;
-  // }
-
-  // // insert URL visitor
-  // if(urlDB[req.params.id]){
-  //   if(!urlDB[req.params.id].hasOwnProperty('visitors')){
-  //     urlDB[req.params.id]['visitors'] = {};
-  //   }
-
-  //   if(! urlDB[req.params.id].visitors.hasOwnProperty(userId)){
-  //     urlDB[req.params.id].visitors[userId] = {
-  //       visitedAt: []
-  //     };
-  //   }
-
-  //   urlDB[req.params.id].visitors[userId].visitedAt.push(createDate());
-  // }
-
   // get URL visitors
-  const { visitors, uniqueVisitors } = getVisitors(req.params.id);
+  let { visitors, uniqueVisitors } = getVisitors(req.params.id);
 
   const sortedVisitors = visitors.sort( ( a, b ) => b.visitedAt - a.visitedAt);
   visitors = sortedVisitors.map(visitor => {
@@ -312,7 +287,7 @@ app.get("/u/:id", (req, res) => {
     userId = req.session.user_id;
   }
 
-  setURLsVisitors(userId);
+  setURLsVisitors(userId, req.params.id, req);
 
   const longURL = urlDB[req.params.id].longURL;
   res.redirect(longURL);
